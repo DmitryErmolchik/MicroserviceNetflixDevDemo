@@ -1,0 +1,83 @@
+dockerProdCluster:
+  peerServer: localhost
+  peerPort: 8761
+  localPort: 8761
+
+management:
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    shutdown:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+eureka:
+  instance:
+    lease-renewal-interval-in-seconds: 1
+    lease-expiration-duration-in-seconds: 5
+  server:
+    response-cache-update-interval-ms: 5000
+---
+
+spring:
+  profiles:
+    dockerProdCluster
+eureka:
+  datacenter: PRODUCTION Cloud
+  environment: Production
+  instance:
+    appname: service-registry
+    metadata-map:
+      zone: prodZone
+  client:
+    region: us-prod
+    serviceUrl:
+      prodZone: http://${dockerProdCluster.peerServer}:${dockerProdCluster.peerPort}/eureka
+    register-with-eureka: true
+    fetch-registry: true
+    prefer-same-zone-eureka: true
+    availability-zones:
+      us-prod: prodZone
+server:
+  port: ${dockerProdCluster.localPort}
+
+---
+
+spring:
+  profiles:
+    dockerDev
+eureka:
+  datacenter: LOCALHOST
+  environment: Development
+  instance:
+    hostname: eureka-server-dev
+    appname: service-registry
+  client:
+    service-url:
+      defaultZone: http://localhost:${dockerProdCluster.localPort}/eureka
+    register-with-eureka: true
+    fetch-registry: true
+server:
+  port: ${dockerProdCluster.localPort}
+
+---
+
+spring:
+  profiles:
+    serverDev
+eureka:
+  datacenter: LOCALHOST
+  environment: Development
+  instance:
+    hostname: eureka-server-dev
+    appname: service-registry
+  client:
+    service-url:
+      defaultZone: http://localhost:9763/eureka
+    register-with-eureka: true
+    fetch-registry: true
+server:
+  port: 9763

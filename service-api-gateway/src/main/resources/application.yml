@@ -1,0 +1,131 @@
+microservice:
+  apiVersion: 1.0
+  config:
+    serviceRegistriesProd: http://localhost:9761/eureka, http://localhost:9762/eureka
+    serviceRegistriesDevOne: http://localhost:9763/eureka
+    serviceRegistriesDevTwo: http://localhost:9764/eureka
+
+spring:
+  application:
+    name: Service-API-Gateway
+
+zuul:
+  routes:
+    helloserver:
+      path: /helloserver/**
+      serviceId: service-server
+    starwars:
+      path: /starwars/**
+      url: http://swapi.co/api/
+
+management:
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    shutdown:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+logging:
+  level:
+    org: INFO
+    com: INFO
+
+---
+
+spring:
+  profiles:
+    prod
+eureka:
+  instance:
+    lease-renewal-interval-in-seconds: 1
+    lease-expiration-duration-in-seconds: 5
+  client:
+    serviceUrl:
+      defaultZone: ${microservice.config.serviceRegistriesProd}
+    registry-fetch-interval-seconds: 1
+    register-with-eureka: true
+    fetch-registry: true
+    eureka-connection-idle-timeout-seconds: 5
+    should-enforce-registration-at-init: true
+server:
+  port: 8200
+microservice:
+  environment: CLOUD
+
+---
+
+spring:
+  profiles:
+    devOne
+
+multieureka:
+  clients:
+    -
+      serviceUrl:
+        defaultZone: ${microservice.config.serviceRegistriesDevOne}
+      registry-fetch-interval-seconds: 1
+      register-with-eureka: true
+      fetch-registry: true
+      eureka-connection-idle-timeout-seconds: 5
+      should-enforce-registration-at-init: true
+      order: 0
+      enabled: true
+    -
+      serviceUrl:
+        defaultZone: ${microservice.config.serviceRegistriesProd}
+      registry-fetch-interval-seconds: 1
+      register-with-eureka: false
+      fetch-registry: true
+      eureka-connection-idle-timeout-seconds: 5
+      should-enforce-registration-at-init: true
+      order: 1
+      enabled: true
+
+eureka:
+  client:
+    enabled: false
+server:
+  port: 9200
+microservice:
+  environment: DEV-1
+
+---
+
+spring:
+  profiles:
+    devTwo
+
+multieureka:
+  clients:
+    -
+      serviceUrl:
+        defaultZone: ${microservice.config.serviceRegistriesDevTwo}
+      registry-fetch-interval-seconds: 1
+      register-with-eureka: true
+      fetch-registry: true
+      eureka-connection-idle-timeout-seconds: 5
+      should-enforce-registration-at-init: true
+      order: 0
+      enabled: true
+    -
+      serviceUrl:
+        defaultZone: ${microservice.config.serviceRegistriesProd}
+      registry-fetch-interval-seconds: 1
+      register-with-eureka: false
+      fetch-registry: true
+      eureka-connection-idle-timeout-seconds: 5
+      order: 1
+      enabled: true
+
+eureka:
+  client:
+    enabled: false
+server:
+  port: 9201
+microservice:
+  environment: DEV-2

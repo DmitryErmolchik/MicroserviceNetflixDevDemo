@@ -1,0 +1,79 @@
+microservice:
+  apiVersion: 1.0
+  config:
+    serviceRegistriesProd: http://localhost:9761/eureka, http://localhost:9762/eureka
+    serviceRegistriesDevOne: http://localhost:9763/eureka
+    serviceRegistriesDevTwo: http://localhost:9764/eureka
+
+spring:
+  application:
+    name: Service-Server
+
+eureka:
+  instance:
+    lease-renewal-interval-in-seconds: 1
+    lease-expiration-duration-in-seconds: 5
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    eureka-connection-idle-timeout-seconds: 5
+    should-enforce-registration-at-init: true
+
+management:
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    shutdown:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+logging:
+  level:
+    org: INFO
+    com: INFO
+
+---
+
+spring:
+  profiles:
+    prod
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${microservice.config.serviceRegistriesProd}
+server:
+  port: 8090
+microservice:
+  environment: CLOUD
+
+---
+
+spring:
+  profiles:
+    devOne
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${microservice.config.serviceRegistriesDevOne}
+server:
+  port: 9090
+microservice:
+  environment: DEV-1
+
+---
+
+spring:
+  profiles:
+    devTwo
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${microservice.config.serviceRegistriesDevTwo}
+server:
+  port: 9091
+microservice:
+  environment: DEV-2
